@@ -19,13 +19,13 @@ void OceanTensor::Metadata::init_strides()
     int curr_stride = 1;
 
     m_strides.push_back(curr_stride);
-    std::cout << curr_stride << std::endl;
     for (std::size_t i = 0; i < m_shape.size(); i++) {
         if (i == 0)
             continue;
         curr_stride *= m_shape[m_shape.size() - i];
-        std::cout << curr_stride << std::endl;
+        m_strides.push_back(curr_stride);
     }
+    std::reverse(m_strides.begin(), m_strides.end());
 }
 
 void OceanTensor::Metadata::transpose(std::initializer_list<int> shape)
@@ -100,6 +100,14 @@ OceanTensor::Metadata::MetaIterator::MetaIterator(
     curr_shape(indexes),
     max_shape(shape)
 {
+    if (shape.size() != indexes.size()) {
+        throw std::runtime_error("Out of bounds\n");
+    }
+    for (size_t i = 0; i < shape.size(); i++) {
+        if (shape[i] <= curr_shape[i]) {
+            throw std::runtime_error("Out of bounds\n");
+        }
+    }
 }
 
 OceanTensor::Metadata::MetaIterator &OceanTensor::Metadata::MetaIterator::operator++()
