@@ -1,23 +1,102 @@
 #pragma once
 
+#include <cstddef>
+#include <stdexcept>
+
 namespace OceanTensor
 {
     template <typename T>
     class myArray {
     public:
-        myArray();
-        myArray(const myArray<T> &oth);
+        myArray() = default;
 
-        myArray(myArray<T> &&oth);
+        ~myArray()
+        {
+            delete[] m_data;
+        }
 
-        myArray<T> &operator=(const myArray<T> &other);
-        myArray<T> &operator=(myArray<T> &&other);
+        myArray(size_t size):
+            m_data(),
+            m_size(size)
+        {
+            m_data = new T[m_size];
+            if (!m_data) {
+                throw std::runtime_error("Alloc Error");
+            }
+            this->fillInRange();
+        }
 
-        T &at(size_t idx);
+
+        myArray(const myArray<T> &oth):
+            m_data(),
+            m_size(oth.m_size)
+        {
+            m_data = new T[oth.m_size];
+            memcpy(m_data, oth.m_data, oth.m_size);
+        }
+
+        myArray(myArray<T> &&oth) noexcept :
+            m_data(),
+            m_size(oth.m_size)
+        {
+            m_data = new T[oth.m_size];
+            memcpy(m_data, oth.m_data, oth.m_size);
+            delete oth.m_data;
+            oth.m_size = 0;
+            oth.m_data = nullptr;
+        }
+
+        myArray<T> &operator=(const myArray<T> &oth)
+        {
+            if (oth == *this) {
+                return *this;
+            }
+            if (m_data != nullptr)
+                delete m_data;
+            m_data = new T[oth.m_size];
+            memcpy(m_data, oth.m_data, oth.m_size);
+        }
+
+        myArray<T> &operator=(myArray<T> &&oth)
+        {
+            if (oth == *this) {
+                return *this;
+            }
+            if (m_data != nullptr)
+                delete m_data;
+            m_data = new T[oth.m_size];
+            memcpy(m_data, oth.m_data, oth.m_size);
+            delete oth.m_data;
+            oth.m_size = 0;
+            oth.m_data = nullptr;
+        }
+
+        T &at(size_t idx)
+        {
+            if (idx >= m_size)
+                throw std::runtime_error("Out of bounds error");
+            return m_data[idx];
+        }
+
+        T &operator[](size_t idx) { return at(idx); }
+        T operator[](size_t idx) const
+        {
+            if (idx >= m_size)
+                throw std::runtime_error("Out of bounds error");
+            return m_data[idx];
+        }
+
+        [[nodiscard]] size_t size() const { return m_size; }
 
     private:
-        void fillInRange(void);
+        void fillInRange()
+        {
+            for (size_t i = 0; i < m_size; i++) {
+                m_data[i] = i;
+            }
+        }
 
         T *m_data;
+        size_t m_size;
     };
 }

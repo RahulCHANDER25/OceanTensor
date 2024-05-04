@@ -6,9 +6,9 @@
 #include <memory>
 #include <array>
 
-#include "operations/mathOp.hpp"
-#include "operations/tensorOp.hpp"
-#include "Metadata.hpp"
+// #include "operations/mathOp.hpp"
+// #include "operations/tensorOp.hpp"
+ #include "MetaData.hpp"
 
 // /!\
 //
@@ -28,20 +28,18 @@ namespace OceanTensor {
     class myTensor {
     public:
 
-        myTensor(const std::initializer_list<int> &shape): m_arr(), m_data(shape)
+        myTensor(std::initializer_list<int> shape): m_arr(), m_data(shape)
         {
-            this->m_arr = std::make_unique<myArray<T>>(m_data.getSize());
+            this->m_arr = std::make_unique<myArray<T>>(m_data.size());
         }
 
         myTensor(const myTensor<T, DIM> &tensor):
-            m_arr(std::make_unique<myArray<T>>(*tensor.m_arr, tensor.m_data.getSize())),
+            m_arr(std::make_unique<myArray<T>>(*tensor.m_arr, tensor.m_data.size())),
             m_data(tensor.m_data)
         {
         }
 
-        ~myTensor()
-        {
-        }
+        ~myTensor() = default;
 
         /* ---- All the functions for tensor ---- */
 
@@ -59,9 +57,8 @@ namespace OceanTensor {
             if (DIM != 1) {
                 format_dump(0, 0);
             } else {
-                T *data = this->get_raw_data();
                 std::cout << "[ ";
-                for (int i = 0; i < m_data.getSize(); i++) std::cout << data[i] << " ";
+                for (int i = 0; i < m_arr.size(); i++) std::cout << m_arr[i] << " ";
                 std::cout << "]" << std::endl;
             }
         }
@@ -76,29 +73,26 @@ namespace OceanTensor {
             m_data.reshape(new_shape);
         }
 
-        T& operator()(const std::initializer_list<int> &indexes)
+        T& operator()(std::initializer_list<int> indexes)
         {
-            return m_data.indexesToIndex<DIM>(indexes);
+            return m_data.toIndex({m_data.shape(), indexes});
         }
 
-        myTensor operator*(myTensor<T, DIM> &npCat) {
-            return this->do_op(npCat, &op::mul);
+        // Check Operator for +, -, *, ...
+        myTensor operator*(myTensor<T, DIM> &ocTensor) {
+            return this->do_op(ocTensor, std::multiplies<T>());
         }
 
-        myTensor operator+(myTensor<T, DIM> &npCat) {
-            return this->do_op(npCat, &op::add);
+        myTensor operator+(myTensor<T, DIM> &ocTensor) {
+            return this->do_op(ocTensor, std::plus<T>());
         }
 
-        myTensor operator-(myTensor<T, DIM> &npCat) {
-            return this->do_op(npCat, &op::sub);
+        myTensor operator-(myTensor<T, DIM> &ocTensor) {
+            return this->do_op(ocTensor, std::minus<T>());
         }
 
-        myTensor operator/(myTensor<T, DIM> &npCat) {
-            return this->do_op(npCat, &op::div);
-        }
-
-        myTensor operator%(myTensor<T, DIM> &npCat) {
-            return this->do_op(npCat, &op::mod);
+        myTensor operator/(myTensor<T, DIM> &ocTensor) {
+            return this->do_op(ocTensor, std::divides<T>());
         }
 
     private:
@@ -107,8 +101,8 @@ namespace OceanTensor {
             if (track_dim == (DIM - 1)) {
                 for (int k = 0; k < track_dim; k++) std::cout << "\t";
                 std::cout << "[ ";
-                for (int k = 0; k < m_data.getShapeValueAt(track_dim); k++) {
-                    std::cout << this->at(idx_start + k * m_data.getStridesValueAt(track_dim)) << " ";
+                for (int k = 0; k < m_data.shapeAt(track_dim); k++) {
+                    std::cout << this->at(idx_start + k * m_data.strideAt(track_dim)) << " ";
                 }
                 std::cout << "] " << std::endl;
                 return;
@@ -116,30 +110,29 @@ namespace OceanTensor {
             for (int k = 0; k < track_dim; k++) std::cout << "\t";
             std::cout << "[" << std::endl;
 
-            for (int i = 0; i < m_data.getShapeValueAt(track_dim); i++) {
+            for (int i = 0; i < m_data.shapeAt(track_dim); i++) {
                 format_dump(
                     track_dim + 1,
-                    idx_start + i * m_data.getStridesValueAt(track_dim)
+                    idx_start + i * m_data.strideAt(track_dim)
                 );
             }
             for (int k = 0; k < track_dim; k++) std::cout << "\t";
             std::cout << "]" << std::endl;
         }
 
-        myTensor do_op(myTensor<T, DIM> &npCat, T (*op)(T, T))
+        myTensor do_op(myTensor<T, DIM> &ocTensor, T (*op)(T, T))
         {
             myTensor<T, DIM> tensor(*this);
-            auto &shape = m_data.getShape();
 
-            if (!metadataOp::_isShapeEqual(shape, npCat.m_data.getShape())){
+            if (!m_data.isEqual(ocTensor.m_data.shape())){
                 std::cout << "[ERROR] Shape error while trying to do an operation" << std::endl;
             }
-            auto it_this = tensor.m_data.begin<DIM>();
-            auto it_oth = npCat.m_data.begin<DIM>();
-            for (int i = 0; i < this->m_data.getSize(); i++) {
-                int idx_this = this->m_data.indexesToIndex(it_this);
-                int idx_oth = npCat.m_data.indexesToIndex(it_oth);
-                tensor.m_arr->value_at(idx_this) = op(tensor.at(idx_this), npCat.at(idx_oth));
+            auto it_this = tensor.m_data.begin();
+            auto it_oth = ocTensor.m_data.begin();
+            for (int i = 0; i < this->m_data.size(); i++) {
+                int idx_this = this->m_data.toIndex(it_this);
+                int idx_oth = ocTensor.m_data.toIndex(it_oth);
+                tensor.m_arr->value_at(idx_this) = op(tensor.at(idx_this), ocTensor.at(idx_oth));
                 ++it_this;
                 ++it_oth;
             }
@@ -147,6 +140,8 @@ namespace OceanTensor {
         }
 
         std::unique_ptr<myArray<T>> m_arr;
-        Metadata m_data;
+        Metadata m_data; // Metada with shape strides and size
     };
 }
+
+// Strides (9, 3, 1) <==> Shape (3, 3, 3)

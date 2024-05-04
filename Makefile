@@ -6,7 +6,7 @@ OBJ	=	$(SRC:.cpp=.o)
 
 CC	:=	g++
 RM	:=	rm -rf
-CPPFLAGS	=	-iquote OceanTensor/
+CPPFLAGS	=	-iquote Tensor/
 CFLAGS	=	-Wall -g3
 
 NAME	=	OceanTensor
