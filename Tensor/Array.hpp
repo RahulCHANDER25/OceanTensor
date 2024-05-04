@@ -32,7 +32,7 @@ namespace OceanTensor
             m_size(oth.m_size)
         {
             m_data = new T[oth.m_size];
-            memcpy(m_data, oth.m_data, oth.m_size);
+            memcpy(m_data, oth.m_data, oth.m_size * sizeof(T));
         }
 
         myArray(myArray<T> &&oth) noexcept :

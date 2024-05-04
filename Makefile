@@ -1,6 +1,5 @@
 SRC	=	src/main.cpp 	\
-		OceanTensor/Metadata.cpp 	\
-		OceanTensor/operations/tensorOp.cpp
+		Tensor/MetaData.cpp 	\
 
 OBJ	=	$(SRC:.cpp=.o)
 
@@ -9,7 +8,7 @@ RM	:=	rm -rf
 CPPFLAGS	=	-iquote Tensor/
 CFLAGS	=	-Wall -g3
 
-NAME	=	OceanTensor
+NAME	=	oceanTensor
 
 all: $(NAME)
 
