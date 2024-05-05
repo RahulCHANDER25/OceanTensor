@@ -10,6 +10,7 @@ namespace OceanTensor {
         Metadata() = default;
 
         Metadata(std::initializer_list<int> shape);
+        Metadata(const Metadata &oth) = default;
 
         void transpose(std::initializer_list<int> shape={});
 
@@ -17,7 +18,9 @@ namespace OceanTensor {
 
         [[nodiscard]] size_t size() const { return m_size; }
         [[nodiscard]] std::vector<int> &shape() { return m_shape; }
+        [[nodiscard]] std::vector<int> shape() const { return m_shape; }
         [[nodiscard]] std::vector<int> &strides() { return m_strides; }
+        [[nodiscard]] std::vector<int> strides() const { return m_strides; }
 
         [[nodiscard]] int strideAt(size_t idx) const { return m_strides[idx]; }
         [[nodiscard]] int shapeAt(size_t idx) const { return m_shape[idx]; }
