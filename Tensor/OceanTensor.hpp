@@ -6,9 +6,7 @@
 #include <memory>
 #include <array>
 
-// #include "operations/mathOp.hpp"
-// #include "operations/tensorOp.hpp"
- #include "MetaData.hpp"
+#include "MetaData.hpp"
 
 // /!\
 //
@@ -18,7 +16,6 @@
 
 // Finish transpose and think about transpose() and TransposeInPlace()
 
-// Be able to do the do_op with respect of the strides/shapes ==> Simple math calcul.
 // Class Neural Network
 
 #include "Array.hpp"
@@ -48,7 +45,7 @@ namespace OceanTensor {
             return (*this->m_arr)[index];
         }
 
-        void dump_arr()
+        void dump_arr() const
         {
             if (DIM != 1) {
                 format_dump(0, 0);
@@ -81,7 +78,7 @@ namespace OceanTensor {
         myTensor operator/(myTensor<T, DIM> &ocTensor) { return this->do_op(ocTensor, std::divides<T>()); }
 
     private:
-        void format_dump(int track_dim, int idx_start)
+        void format_dump(int track_dim, int idx_start) const
         {
             if (track_dim == (DIM - 1)) {
                 for (int k = 0; k < track_dim; k++) std::cout << "\t";
