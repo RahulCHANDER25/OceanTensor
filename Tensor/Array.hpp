@@ -15,7 +15,7 @@ namespace OceanTensor
             delete[] m_data;
         }
 
-        myArray(size_t size):
+        myArray(size_t size, bool inRange=true):
             m_data(),
             m_size(size)
         {
@@ -23,7 +23,8 @@ namespace OceanTensor
             if (!m_data) {
                 throw std::runtime_error("Alloc Error");
             }
-            this->fillInRange();
+            if (inRange)
+                this->fillInRange();
         }
 
 
@@ -78,6 +79,8 @@ namespace OceanTensor
             return m_data[idx];
         }
 
+        [[nodiscard]] size_t size() const { return m_size; }
+
         T &operator[](size_t idx) { return at(idx); }
         T operator[](size_t idx) const
         {
@@ -86,13 +89,73 @@ namespace OceanTensor
             return m_data[idx];
         }
 
-        [[nodiscard]] size_t size() const { return m_size; }
+        myArray<T> operator*(T val) const
+        {
+            myArray<T> newArr(*this);
+
+            arrOp(newArr, [&val] (T &curr) -> void { curr *= val; });
+            return newArr;
+        }
+        myArray<T> operator+(T val) const
+        {
+            myArray<T> newArr(*this);
+
+            arrOp(newArr, [&val] (T &curr) -> void { curr += val; });
+            return newArr;
+        }
+        myArray<T> operator-(T val) const
+        {
+            myArray<T> newArr(*this);
+
+            arrOp(newArr, [&val] (T &curr) -> void { curr -= val; });
+            return newArr;
+        }
+        myArray<T> operator/(T val) const
+        {
+            myArray<T> newArr(*this);
+
+            if (val == 0)
+                throw std::runtime_error("Zero division error\n");
+            arrOp(newArr, [&val] (T &curr) -> void { curr /= val; });
+            return newArr;
+        }
+
+        myArray<T> &operator*=(T val)
+        {
+            arrOp(*this, [&val] (T &curr) -> void { curr *= val; });
+            return *this;
+        }
+        myArray<T> &operator+=(T val)
+        {
+            arrOp(*this, [&val] (T &curr) -> void { curr += val; });
+            return *this;
+        }
+        myArray<T> &operator-=(T val)
+        {
+            arrOp(*this, [&val] (T &curr) -> void { curr -= val; });
+            return *this;
+        }
+        myArray<T> &operator/=(T val)
+        {
+            if (val == 0)
+                throw std::runtime_error("Zero division error\n");
+            arrOp(*this, [&val] (T &curr) -> void { curr /= val; });
+            return *this;
+        }
 
     private:
         void fillInRange()
         {
             for (size_t i = 0; i < m_size; i++) {
                 m_data[i] = i;
+            }
+        }
+
+        template <typename F>
+        void arrOp(myArray<T> &arr, F func) const
+        {
+            for (size_t i = 0; i < arr.m_size; i++) {
+                func(arr[i]);
             }
         }
 
