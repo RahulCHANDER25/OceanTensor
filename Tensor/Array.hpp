@@ -25,6 +25,8 @@ namespace OceanTensor
             }
             if (inRange)
                 this->fillInRange();
+            else
+                this->fillZeros();
         }
 
 
@@ -144,10 +146,16 @@ namespace OceanTensor
         }
 
     private:
-        void fillInRange()
-        {
+        void fillInRange() {
             for (size_t i = 0; i < m_size; i++) {
                 m_data[i] = i;
+            }
+        }
+
+        void fillZeros()
+        {
+            for (size_t i = 0; i < m_size; i++) {
+                m_data[i] = 0;
             }
         }
 

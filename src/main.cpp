@@ -62,8 +62,8 @@ void tensor_test()
 
 int main()
 {
-    // dot_test();
+    dot_test();
     matrix_test();
-    // tensor_test();
+    tensor_test();
     return 0;
 }
