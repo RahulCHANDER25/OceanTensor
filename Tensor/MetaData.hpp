@@ -51,6 +51,26 @@ namespace OceanTensor {
 
         bool isEqual(std::vector<int> &oth) { return std::equal(m_shape.begin(), m_shape.end(), oth.begin()); }
 
+        Metadata operator=(const Metadata &meta)
+        {
+            m_shape = meta.m_shape;
+            m_strides = meta.m_strides;
+            m_size = meta.m_size;
+            return *this;
+        }
+
+
+        Metadata operator=(Metadata &&meta)
+        {
+            m_shape = meta.m_shape;
+            meta.m_shape.clear();
+            m_strides = meta.m_strides;
+            meta.m_strides.clear();
+            m_size = meta.m_size;
+            meta.m_size = 0;
+            return *this;
+        }
+
     private:
         void init_strides();
 

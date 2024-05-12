@@ -1,5 +1,8 @@
 #include <iostream>
+#include "Loss.hpp"
 #include "OceanTensor.hpp"
+#include "LinearNetwork.hpp"
+#include "Activation.hpp"
 
 void dot_test()
 {
@@ -60,10 +63,85 @@ void tensor_test()
     std::cout << "--------------------------------" << std::endl;
 }
 
+/// @brief Example from https://mattmazur.com/2015/03/17/a-step-by-step-backpropagation-example/
+void linear_test()
+{
+    Network::LinearNetwork net(2, 2);
+    Network::LinearNetwork netOut(2, 2);
+    OceanTensor::myTensor<double, 2> input({2, 1});
+    OceanTensor::myTensor<double, 2> y({2, 1});
+
+    /* -------------------- INIT OF NETWORK -------------------- */
+
+    // Prediction
+    y[0] = 0.01;
+    y[1] = 0.99;
+
+    // Input values
+    input[0] = 0.05;
+    input[1] = 0.10;
+
+    // First Layer weight values
+    net.m_weight({0, 0}) = 0.15;
+    net.m_weight({0, 1}) = 0.20;
+    net.m_weight({1, 0}) = 0.25;
+    net.m_weight({1, 1}) = 0.30;
+
+    // First Layer biases values
+    net.m_bias[0] = 0.35;
+    net.m_bias[1] = 0.35;
+
+    // Second Layer weight values
+    netOut.m_weight({0, 0}) = 0.40;
+    netOut.m_weight({0, 1}) = 0.45;
+    netOut.m_weight({1, 0}) = 0.50;
+    netOut.m_weight({1, 1}) = 0.55;
+
+    // Second Layer biases values
+    netOut.m_bias[0] = 0.60;
+    netOut.m_bias[1] = 0.60;
+
+    /* -------------------- COMPUTE FORWARD -------------------- */
+
+    // Input and desired output
+    std::cout << "Input: " << input << std::endl;
+    std::cout << "Y: " << y << std::endl;
+
+    // Going through the first net
+    auto net1Forward = net.forward(input);
+    std::cout << "Net output + Activation: \n" << net1Forward << std::endl;
+
+    // Going through the second net
+    auto pred = netOut.forward(net1Forward);
+    std::cout << "Net output + Activation: \n" << pred << std::endl;
+
+    // Compute the loss net
+    auto loss = Loss::squaredLoss(pred, y, false);
+    std::cout << "Loss: " << loss << std::endl;;
+    std::cout << "Total Loss: " << loss.sum() << std::endl << std::endl;;
+
+    /* -------------------- COMPUTE BACKWARD -------------------- */
+
+    netOut.backward(loss);
+    // if first layer ==> Apply simple backpropagation
+    // else apply with one layer before
+}
+
+void copy_constructor_test()
+{
+    OceanTensor::myTensor<double, 2> input({2, 1});
+    OceanTensor::myTensor<double, 2> cpy;
+
+    cpy = input;
+    std::cout << input << std::endl;
+}
+
 int main()
 {
-    dot_test();
-    matrix_test();
-    tensor_test();
+    // dot_test();
+    // matrix_test();
+    // tensor_test();
+    linear_test();
+    // copy_constructor_test();
     return 0;
 }

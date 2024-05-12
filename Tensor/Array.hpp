@@ -1,21 +1,28 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdlib>
+#include <ctime>
+#include <iostream>
+#include <memory>
 #include <stdexcept>
+#include <random>
+#include "InitType.hpp"
 
 namespace OceanTensor
 {
     template <typename T>
     class myArray {
     public:
-        myArray() = default;
+        myArray(): m_data(nullptr), m_size(0) {}
 
         ~myArray()
         {
-            delete[] m_data;
+            if (m_data != nullptr)
+                delete[] m_data;
         }
 
-        myArray(size_t size, bool inRange=true):
+        myArray(size_t size, InitType type):
             m_data(),
             m_size(size)
         {
@@ -23,10 +30,17 @@ namespace OceanTensor
             if (!m_data) {
                 throw std::runtime_error("Alloc Error");
             }
-            if (inRange)
-                this->fillInRange();
-            else
-                this->fillZeros();
+            switch (type) {
+                case ZEROS:
+                    this->fillZeros();
+                    break;
+                case IN_RANGE:
+                    this->fillInRange();
+                    break;
+                case RANDOM:
+                    this->fillRandom();
+                    break;
+            }
         }
 
 
@@ -34,6 +48,7 @@ namespace OceanTensor
             m_data(),
             m_size(oth.m_size)
         {
+
             m_data = new T[oth.m_size];
             memcpy(m_data, oth.m_data, oth.m_size * sizeof(T));
         }
@@ -42,8 +57,9 @@ namespace OceanTensor
             m_data(),
             m_size(oth.m_size)
         {
+
             m_data = new T[oth.m_size];
-            memcpy(m_data, oth.m_data, oth.m_size);
+            memcpy(m_data, oth.m_data, oth.m_size * sizeof(T));
             delete oth.m_data;
             oth.m_size = 0;
             oth.m_data = nullptr;
@@ -51,30 +67,28 @@ namespace OceanTensor
 
         myArray<T> &operator=(const myArray<T> &oth)
         {
-            if (oth == *this) {
-                return *this;
-            }
             if (m_data != nullptr)
                 delete m_data;
             m_data = new T[oth.m_size];
-            memcpy(m_data, oth.m_data, oth.m_size);
+            m_size = oth.size();
+            memcpy(m_data, oth.m_data, oth.m_size * sizeof(T));
+            return *this;
         }
 
         myArray<T> &operator=(myArray<T> &&oth)
         {
-            if (oth == *this) {
-                return *this;
-            }
             if (m_data != nullptr)
                 delete m_data;
+            m_size = oth.size();
             m_data = new T[oth.m_size];
-            memcpy(m_data, oth.m_data, oth.m_size);
-            delete oth.m_data;
+            memcpy(m_data, oth.m_data, oth.m_size * sizeof(T));
+            delete[] oth.m_data;
             oth.m_size = 0;
             oth.m_data = nullptr;
+            return  *this;
         }
 
-        T &at(size_t idx)
+        T &at(size_t idx) const
         {
             if (idx >= m_size)
                 throw std::runtime_error("Out of bounds error");
@@ -152,10 +166,20 @@ namespace OceanTensor
             }
         }
 
-        void fillZeros()
-        {
+        void fillZeros() {
             for (size_t i = 0; i < m_size; i++) {
                 m_data[i] = 0;
+            }
+        }
+
+        void fillRandom()
+        {
+            std::random_device dev;
+            std::mt19937 gen(dev());
+            std::uniform_real_distribution<double> uniform(0, 1);
+
+            for (size_t i = 0; i < m_size; i++) {
+                m_data[i] = uniform(gen);
             }
         }
 
