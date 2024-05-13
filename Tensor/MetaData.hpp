@@ -49,7 +49,7 @@ namespace OceanTensor {
 
         [[nodiscard]] size_t toIndex(MetaIterator it) const;
 
-        bool isEqual(std::vector<int> &oth) { return std::equal(m_shape.begin(), m_shape.end(), oth.begin()); }
+        bool isEqual(const std::vector<int> &oth) const { return std::equal(m_shape.begin(), m_shape.end(), oth.begin()); }
 
         Metadata operator=(const Metadata &meta)
         {
