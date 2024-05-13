@@ -1,8 +1,10 @@
 #include <iostream>
+#include "InitType.hpp"
 #include "Loss.hpp"
 #include "OceanTensor.hpp"
 #include "LinearNetwork.hpp"
 #include "Activation.hpp"
+#include "Sequential.hpp"
 
 void dot_test()
 {
@@ -136,12 +138,25 @@ void copy_constructor_test()
     std::cout << input << std::endl;
 }
 
+void test_Sequential()
+{
+    Network::Sequential seq{
+        Network::LinearNetwork(2, 4),
+        Network::LinearNetwork(4, 1)
+    };
+    OceanTensor::myTensor<double, 2> input({2, 1}, IN_RANGE);
+    OceanTensor::myTensor<double, 2> pred({10, 1}, IN_RANGE);
+
+    std::cout << seq.forward(input) << std::endl;;
+}
+
 int main()
 {
     // dot_test();
     // matrix_test();
     // tensor_test();
-    linear_test();
+    // linear_test();
+    test_Sequential();
     // copy_constructor_test();
     return 0;
 }

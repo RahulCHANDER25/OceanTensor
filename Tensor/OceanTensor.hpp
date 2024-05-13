@@ -1,4 +1,5 @@
 #pragma once
+#include <initializer_list>
 #include <iostream>
 #include <cstring>
 #include <algorithm>
@@ -6,17 +7,11 @@
 #include "MetaData.hpp"
 
 #include "InitType.hpp"
-// /!\
-//
-//     We want user to be able to put their shapes in the class/functions parameters
-//     Check how to put operations in separate files
-// /!\
-
-// Finish transpose and think about transpose() and TransposeInPlace()
-
-// Class Neural Network
 
 #include "Array.hpp"
+
+// Add N Row with argument copy line=-1
+// Add N Col with argument copy line=-1
 
 namespace OceanTensor {
     template <typename T, int DIM>
@@ -134,9 +129,23 @@ namespace OceanTensor {
 
         void clear()
         {
-            for (int i = 0; i < m_data.size(); i++) {
+            for (size_t i = 0; i < m_data.size(); i++) {
                 this->m_arr[i] = 0;
             }
+        }
+
+        /// @brief Replicate N (size of the new tensor) times all the numbers of the tensors in a new shape.
+        ///        Careful if N is not equal to a pow of the size of the current tensor then copy will
+        ///        truncated.
+        myTensor<T, DIM> replicate(std::initializer_list<int> shape) const
+        {
+            int sizeThis = size();
+            myTensor<T, DIM> ten{shape};
+
+            for (int i = 0; i < ten.size(); i++) {
+                ten[i] = this->m_arr[i % sizeThis];
+            }
+            return ten;
         }
 
         T& operator()(std::initializer_list<int> indexes)
@@ -170,6 +179,7 @@ namespace OceanTensor {
         {
             this->m_arr = std::move(ocTensor.m_arr);
             this->m_data = std::move(ocTensor.m_data);
+            return *this;
         }
 
         myTensor operator*(myTensor<T, DIM> &ocTensor) { return this->do_opNew(ocTensor, std::multiplies<T>()); }
@@ -182,10 +192,10 @@ namespace OceanTensor {
         myTensor operator-(T val) { return myTensor<T, DIM>(this->m_arr - val, m_data); }
         myTensor operator/(T val) { return myTensor<T, DIM>(this->m_arr / val, m_data); }
 
-        myTensor &operator*=(myTensor<T, DIM> &ocTensor) { return do_op(*this, ocTensor, std::multiplies<T>()); }
-        myTensor &operator+=(myTensor<T, DIM> &ocTensor) { return do_op(*this, ocTensor, std::plus<T>()); }
-        myTensor &operator-=(myTensor<T, DIM> &ocTensor) { return do_op(*this, ocTensor, std::minus<T>()); }
-        myTensor &operator/=(myTensor<T, DIM> &ocTensor) { return do_op(*this, ocTensor, std::divides<T>()); }
+        myTensor &operator*=(const myTensor<T, DIM> &ocTensor) { return do_op(*this, ocTensor, std::multiplies<T>()); }
+        myTensor &operator+=(const myTensor<T, DIM> &ocTensor) { return do_op(*this, ocTensor, std::plus<T>()); }
+        myTensor &operator-=(const myTensor<T, DIM> &ocTensor) { return do_op(*this, ocTensor, std::minus<T>()); }
+        myTensor &operator/=(const myTensor<T, DIM> &ocTensor) { return do_op(*this, ocTensor, std::divides<T>()); }
 
         myTensor &operator*=(T val)
         {
@@ -244,7 +254,7 @@ namespace OceanTensor {
         }
 
         template <typename F>
-        myTensor<T, DIM> &do_op(myTensor<T, DIM> &tensor, myTensor<T, DIM> &ocTensor, F op)
+        myTensor<T, DIM> &do_op(myTensor<T, DIM> &tensor, const myTensor<T, DIM> &ocTensor, F op)
         {
             if (!tensor.m_data.isEqual(ocTensor.m_data.shape())){
                 std::cout << "[ERROR] Shape error while trying to do an operation" << std::endl;
