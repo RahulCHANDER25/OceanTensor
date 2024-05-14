@@ -5,7 +5,6 @@
 
 #include "Activation.hpp"
 #include "OceanTensor.hpp"
-#include <chrono>
 #include <functional>
 
 namespace Network {
@@ -21,7 +20,7 @@ namespace Network {
             m_weight({out, in}),
             m_bias({out, 1}),
             m_gradW({out, in}, ZEROS),
-            m_delta({out, 1}, ZEROS),
+            m_delta({out, in}, ZEROS),
             m_act(act)
         {
         }
@@ -30,22 +29,18 @@ namespace Network {
 
         virtual OceanTensor::myTensor<double, 2> forward(OceanTensor::myTensor<double, 2> &inputs) override
         {
-            /*
-                std::cout << "Weight: " << m_weight << std::endl;
-                std::cout << "Bias: " << m_bias << std::endl;
+            // Tracking input.
+            auto Wshapes = m_weight.getMetadata().shape();
+            m_input = inputs.transposed().replicate({Wshapes[0], Wshapes[1]});
 
-                auto Wshapes = m_weight.getMetadata().shape();
-                m_input = inputs.transposed().replicate({Wshapes[0], Wshapes[1]}); // Important !
-            */
+            auto z = m_weight.matMul(inputs) + m_bias;
+            m_output = (m_act(z, false));
 
-            auto outNet(m_act(m_weight.matMul(inputs) + m_bias, false));
+            // Tracking delta activation.
+            // m_delta.clear(); // This too
+            // m_delta = m_act(z, true);
 
-            /*
-                m_delta.clear(); // This too
-                m_delta = ((outNet * (-1)) + 1) * outNet;
-            */
-
-            return outNet;
+            return m_output;
         }
 
         void backward(OceanTensor::myTensor<double, 2> &error) // Normalement c ok mais recheck
@@ -54,7 +49,8 @@ namespace Network {
             auto derivLoss = (error * 2).sqrt();
 
             // std::cout << "There is derivLoss, Net over Activation and Weight over Net" << std::endl;
-            // std::cout << m_delta << std::endl;
+            // std::cout << "DerivLoss: \n";
+            // std::cout << derivLoss << std::endl;
 
             m_delta *= derivLoss;
 
@@ -63,11 +59,10 @@ namespace Network {
 
             // std::cout << m_input << gradDelta << std::endl;
 
-            m_gradW = (m_input * gradDelta) * 0.5;
+            m_gradW = (m_input * gradDelta) * (-1);
 
-            // std::cout << m_gradW << std::endl;
             // std::cout << m_weight << std::endl;
-            // std::cout << m_weight - m_gradW << std::endl;
+            // std::cout << (m_gradW * 0.5) + m_weight << std::endl;
             return;
         }
 
@@ -76,8 +71,9 @@ namespace Network {
         OceanTensor::myTensor<double, 2> m_gradW;
         OceanTensor::myTensor<double, 2> m_delta;
 
-        // Maybe have a reference to input ? // Check for optimization how to do it.
+        // All of that type are temporary I have to change them !
         OceanTensor::myTensor<double, 2> m_input;
+        OceanTensor::myTensor<double, 2> m_output;
         std::function<Matrix2f(const Matrix2f &, bool)> m_act;
     private:
     };

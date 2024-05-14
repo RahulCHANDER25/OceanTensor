@@ -138,16 +138,54 @@ void copy_constructor_test()
     std::cout << input << std::endl;
 }
 
+void formatNets(Network::LinearNetwork &net, Network::LinearNetwork &net2)
+{
+    // First Layer weight values
+    net.m_weight({0, 0}) = 0.15;
+    net.m_weight({0, 1}) = 0.20;
+    net.m_weight({1, 0}) = 0.25;
+    net.m_weight({1, 1}) = 0.30;
+
+    // First Layer biases values
+    net.m_bias[0] = 0.35;
+    net.m_bias[1] = 0.35;
+
+    // Second Layer weight values
+    net2.m_weight({0, 0}) = 0.40;
+    net2.m_weight({0, 1}) = 0.45;
+    net2.m_weight({1, 0}) = 0.50;
+    net2.m_weight({1, 1}) = 0.55;
+
+    // Second Layer biases values
+    net2.m_bias[0] = 0.60;
+    net2.m_bias[1] = 0.60;
+}
+
 void test_Sequential()
 {
+    Network::LinearNetwork net(2, 2);
+    Network::LinearNetwork netOut(2, 2);
+
+    formatNets(net, netOut);
+
     Network::Sequential seq{
-        Network::LinearNetwork(2, 4),
-        Network::LinearNetwork(4, 1)
+        std::move(net),
+        std::move(netOut)
     };
     OceanTensor::myTensor<double, 2> input({2, 1}, IN_RANGE);
     OceanTensor::myTensor<double, 2> pred({10, 1}, IN_RANGE);
+    OceanTensor::myTensor<double, 2> y({2, 1});
 
-    std::cout << seq.forward(input) << std::endl;;
+    // Input values
+    input[0] = 0.05;
+    input[1] = 0.10;
+
+    // Prediction
+    y[0] = 0.01;
+    y[1] = 0.99;
+
+    std::cout << "Prediction: " << seq.forward(input) << std::endl;
+    seq.backward(y);
 }
 
 int main()
