@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cstring>
 #include <algorithm>
+#include <stdexcept>
 
 #include "MetaData.hpp"
 
@@ -137,6 +138,7 @@ namespace OceanTensor {
         /// @brief Replicate N (size of the new tensor) times all the numbers of the tensors in a new shape.
         ///        Careful if N is not equal to a pow of the size of the current tensor then copy will
         ///        truncated.
+        ///        WARNING: This function replicate in accordance of raw buffer not shapes.
         myTensor<T, DIM> replicate(std::initializer_list<int> shape) const
         {
             int sizeThis = size();
@@ -199,22 +201,22 @@ namespace OceanTensor {
 
         myTensor &operator*=(T val)
         {
-            this->m_arr * val;
+            this->m_arr *= val;
             return *this;
         }
         myTensor &operator+=(T val)
         {
-            this->m_arr + val;
+            this->m_arr += val;
             return *this;
         }
         myTensor &operator-=(T val)
         {
-            this->m_arr - val;
+            this->m_arr += val;
             return *this;
         }
         myTensor &operator/=(T val)
         {
-            this->m_arr / val;
+            this->m_arr /= val;
             return *this;
         }
 
@@ -257,7 +259,7 @@ namespace OceanTensor {
         myTensor<T, DIM> &do_op(myTensor<T, DIM> &tensor, const myTensor<T, DIM> &ocTensor, F op)
         {
             if (!tensor.m_data.isEqual(ocTensor.m_data.shape())){
-                std::cout << "[ERROR] Shape error while trying to do an operation" << std::endl;
+                throw std::runtime_error("[ERROR] Shape error while trying to do an operation");
             }
             auto it_this = tensor.m_data.begin();
             auto it_oth = ocTensor.m_data.begin();

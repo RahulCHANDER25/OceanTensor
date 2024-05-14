@@ -20,7 +20,7 @@ namespace Loss {
         if (!meta_pred.isEqual(meta_y.shape()))
             throw std::runtime_error("Shape not equal.");
         for (size_t i = 0; i < newTensor.size(); i++) {
-            newTensor[i] = std::pow(newTensor[i] - y[i], 2) * 0.5;
+            newTensor[i] = std::pow(y[i] - newTensor[i], 2) * 0.5;
         }
         return newTensor;
     }
