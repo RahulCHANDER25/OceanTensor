@@ -17,8 +17,9 @@ namespace Network {
             std::function<Matrix2f (const Matrix2f &, bool)> act=Act::sigmoid<2>
         ):
             INeuralNetwork(),
-            m_weight({out, in}),
-            m_bias({out, 1}),
+            m_weight{out, in},
+            m_bias{out, 1},
+            m_gradB{out, 1},
             m_gradW({out, in}, ZEROS),
             m_delta({out, in}, ZEROS),
             m_act(act)
@@ -31,7 +32,7 @@ namespace Network {
         {
             // Tracking input.
             auto Wshapes = m_weight.getMetadata().shape();
-            m_input = inputs.transposed().replicate({Wshapes[0], Wshapes[1]});
+            m_input = inputs.replicate({Wshapes[0], Wshapes[1]});
 
             auto z = m_weight.matMul(inputs) + m_bias;
             m_output = (m_act(z, false));
@@ -43,31 +44,19 @@ namespace Network {
             return m_output;
         }
 
-        void backward(OceanTensor::myTensor<double, 2> &error) // Normalement c ok mais recheck
+        void backward(OceanTensor::myTensor<double, 2> &) // Normalement c ok mais recheck
         {
-            auto Wshapes = m_weight.getMetadata().shape();
-            auto derivLoss = (error * 2).sqrt();
-
-            // std::cout << "There is derivLoss, Net over Activation and Weight over Net" << std::endl;
-            // std::cout << "DerivLoss: \n";
-            // std::cout << derivLoss << std::endl;
-
-            m_delta *= derivLoss;
-
-            auto gradDelta  = m_delta.replicate({Wshapes[0], Wshapes[1]});
-            gradDelta.transpose();
-
-            // std::cout << m_input << gradDelta << std::endl;
-
-            m_gradW = (m_input * gradDelta) * (-1);
-
+            this->m_weight -= this->m_gradW;
+            this->m_bias -= this->m_gradB;
+            // std::cout << "BACKWARD" << std::endl;
             // std::cout << m_weight << std::endl;
-            // std::cout << (m_gradW * 0.5) + m_weight << std::endl;
+            // std::cout << m_bias << std::endl;
             return;
         }
 
         OceanTensor::myTensor<double, 2> m_weight;
         OceanTensor::myTensor<double, 2> m_bias;
+        OceanTensor::myTensor<double, 2> m_gradB;
         OceanTensor::myTensor<double, 2> m_gradW;
         OceanTensor::myTensor<double, 2> m_delta;
 
