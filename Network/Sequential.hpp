@@ -31,33 +31,49 @@ namespace Network {
             return out;
         }
 
-
         virtual void backward(OceanTensor::myTensor<double, 2> &target)
         {
             auto output = m_layers[m_layers.size() - 1].m_output;
             auto delta = (output - target);
-            delta *= ((output * (-1)) + 1) * output;
 
             auto size = m_layers.size() - 1;
             for (int i = m_layers.size() - 1; i >= 0; i--) {
+
                 auto &curr = m_layers[i];
+                auto &shape = curr.m_weight.getMetadata().shape();
 
-
-                if (i == size) {
-                    auto &shape = curr.m_weight.getMetadata().shape();
-                    delta = delta.replicate({shape[0], shape[1]}).transposed();
+                if (i == size) { // First time we need to put it in correct shape.
+                    delta = delta.replicate({shape[1], shape[0]}).transposed();
                 }
+                auto out = curr.m_output.replicate({shape[1], shape[0]}).transposed();
 
-                // std::cout << delta << std::endl;
+                delta *= ((out * (-1)) + 1) * out;
+
                 // Grad for weight
+
+                // std::cout << "For bias => " << delta << curr.m_bias << std::endl;
+                for (int j = 0; j < curr.m_bias.getMetadata().shapeAt(0); j++) {
+                    curr.m_gradB({j, 0}) = delta({j, 0});
+                }
                 curr.m_gradW = curr.m_input * delta;
                 curr.m_gradW *= 0.5;
 
-                delta = delta.transposed();
-                delta *= curr.m_weight.transposed();
-                std::cout << "Current Iteration: " << std::endl;
-                std::cout << curr.m_weight << std::endl;
-                std::cout << curr.m_weight - curr.m_gradW << std::endl;
+                delta *= curr.m_weight;
+                delta.transpose();
+
+                auto &deltaShape = delta.getMetadata().shape();
+                for (int i = 0; i < deltaShape[0]; i++) {
+                    double row = 0.f;
+                    for (int j = 0; j < deltaShape[1]; j++) {
+                        row += delta({i, j});
+                    }
+                    for (int j = 0; j < deltaShape[1]; j++) {
+                        delta({i, j}) = row;
+                    }
+                }
+            }
+            for (auto &layer: m_layers) {
+                layer.backward(target);
             }
         }
 

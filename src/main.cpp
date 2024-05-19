@@ -1,3 +1,4 @@
+#include <cmath>
 #include <iostream>
 #include "InitType.hpp"
 #include "Loss.hpp"
@@ -138,6 +139,7 @@ void copy_constructor_test()
     std::cout << input << std::endl;
 }
 
+/// @brief Example from https://mattmazur.com/2015/03/17/a-step-by-step-backpropagation-example/
 void formatNets(Network::LinearNetwork &net, Network::LinearNetwork &net2)
 {
     // First Layer weight values
@@ -188,13 +190,47 @@ void test_Sequential()
     seq.backward(y);
 }
 
+void test_Training()
+{
+    Network::LinearNetwork net(5, 15);
+    Network::LinearNetwork netOut(15, 5);
+
+    Network::Sequential seq{
+        std::move(net),
+        std::move(netOut)
+    };
+
+    OceanTensor::myTensor<double, 2> input({5, 1});
+    OceanTensor::myTensor<double, 2> y({5, 1});
+
+    for (int i = 0; i < input.size(); i++) {
+        y[i] = cos(input[i]);
+    }
+
+    std::cout << seq.forward(input) << std::endl;
+    for (int i = 0; i < 10000; i++) {
+        auto pred = seq.forward(input);
+        if (i % 100 == 0) {
+            std::cout << "----------- EPOCH " << i << "-----------" <<std::endl;
+            std::cout << "Pred: " << pred[0] << " VS " << "y (cosinus): " << y[0] << std::endl;
+            auto loss = Loss::squaredLoss(pred, y, false);
+            std::cout << "Total Loss: " << loss.sum() << std::endl << std::endl;;
+            if (std::abs(loss.sum()) < 10e-6) {
+                break;
+            }
+        }
+        seq.backward(y);
+    }
+}
+
 int main()
 {
     // dot_test();
     // matrix_test();
     // tensor_test();
     // linear_test();
-    test_Sequential();
+    // test_Sequential();
+    test_Training();
     // copy_constructor_test();
     return 0;
 }

@@ -80,6 +80,17 @@ namespace OceanTensor {
             m_data.reshape(new_shape);
         }
 
+        void normalize()
+        {
+            T s = sum();
+
+            if (s == 0)
+                return;
+            for (int i = 0; i < size(); i++) {
+                this->m_arr[i] /= s;
+            }
+        }
+
         T dot(const myTensor<T, DIM> &ocTensor) requires (DIM == 1)
         {
             if (m_data.size() != ocTensor.m_data.size())

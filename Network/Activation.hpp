@@ -14,7 +14,7 @@ namespace Act {
         OceanTensor::myTensor<double, DIM> outTensor(tensor);
 
         for (size_t i = 0; i < outTensor.size(); i++) {
-            outTensor[i] = 1 / (1 + std::exp((-1) * tensor[i]));
+            outTensor[i] = 1.0 / (1.0 + std::exp((-1.0) * tensor[i]));
         }
         if (derivative) {
             return (outTensor * (-1) + 1) * outTensor;
