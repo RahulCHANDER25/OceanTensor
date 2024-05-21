@@ -176,7 +176,7 @@ namespace OceanTensor
         {
             std::random_device dev;
             std::mt19937 gen(dev());
-            std::uniform_real_distribution<double> uniform(0, 1);
+            std::uniform_real_distribution<double> uniform(-1, 1);
 
             for (size_t i = 0; i < m_size; i++) {
                 m_data[i] = uniform(gen);
