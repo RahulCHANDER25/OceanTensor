@@ -192,30 +192,29 @@ void test_Sequential()
 
 void test_Training()
 {
-    Network::LinearNetwork net(5, 15);
-    Network::LinearNetwork netOut(15, 5);
+    Network::LinearNetwork net(5, 64);
+    Network::LinearNetwork netOut(64, 5);
 
     Network::Sequential seq{
         std::move(net),
         std::move(netOut)
     };
 
+    // For fitting same datas he is good
     OceanTensor::myTensor<double, 2> input({5, 1});
     OceanTensor::myTensor<double, 2> y({5, 1});
+    for (int i = 0; i < input.size(); i++)
+            y[i] = cos(input[i]);
 
-    for (int i = 0; i < input.size(); i++) {
-        y[i] = cos(input[i]);
-    }
-
-    std::cout << seq.forward(input) << std::endl;
-    for (int i = 0; i < 10000; i++) {
+    for (int i = 0; i < 100000; i++) {
+        // Not very good when data are generated in loop
         auto pred = seq.forward(input);
         if (i % 100 == 0) {
             std::cout << "----------- EPOCH " << i << "-----------" <<std::endl;
             std::cout << "Pred: " << pred[0] << " VS " << "y (cosinus): " << y[0] << std::endl;
             auto loss = Loss::squaredLoss(pred, y, false);
             std::cout << "Total Loss: " << loss.sum() << std::endl << std::endl;;
-            if (std::abs(loss.sum()) < 10e-6) {
+            if (loss.sum() < 10e-6) {
                 break;
             }
         }
