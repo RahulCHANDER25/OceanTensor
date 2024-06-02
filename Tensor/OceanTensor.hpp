@@ -1,8 +1,11 @@
 #pragma once
+#include <cstddef>
 #include <initializer_list>
 #include <iostream>
 #include <cstring>
 #include <algorithm>
+#include <iterator>
+#include <memory>
 #include <stdexcept>
 
 #include "MetaData.hpp"
@@ -10,6 +13,7 @@
 #include "InitType.hpp"
 
 #include "Array.hpp"
+#include <fstream>
 
 // Add N Row with argument copy line=-1
 // Add N Col with argument copy line=-1
@@ -229,6 +233,65 @@ namespace OceanTensor {
         {
             this->m_arr /= val;
             return *this;
+        }
+
+        void save(const std::string &filepath, std::_Ios_Openmode mode=std::ios::app)
+        {
+            std::ofstream ofs(filepath, mode);
+
+            size_t size = m_arr.size();
+            auto data = m_arr.getRawData();
+
+            ofs.write(reinterpret_cast<char *>(&size), sizeof(size_t));
+
+            ofs.write(reinterpret_cast<char *>(data), sizeof(T) * size);
+            auto &shape = m_data.shape();
+            auto &strides = m_data.strides();
+
+            size_t size_shape = shape.size();
+            size_t size_strides = strides.size();
+            ofs.write(reinterpret_cast<char *>(&size_shape), sizeof(size_t));
+            ofs.write(reinterpret_cast<char *>(&size_strides), sizeof(size_t));
+
+            std::ostream_iterator<int> out(ofs, "\n");
+
+            std::copy(shape.begin(), shape.end(), out);
+            std::copy(strides.begin(), strides.end(), out);
+        }
+
+        void load(std::ifstream &ifs)
+        {
+            size_t n = 0;
+            char c = 0;
+
+            ifs.read(reinterpret_cast<char *>(&n), sizeof(size_t));
+
+            T *newData = new T[n];
+
+            ifs.read(reinterpret_cast<char *>(newData), sizeof(T) * n);
+            m_arr = myArray<T>(n, newData);
+
+            auto &shape = m_data.shape();
+            auto &strides = m_data.strides();
+
+            shape.clear();
+            strides.clear();
+
+            size_t size_shape = 0;
+            size_t size_strides = 0;
+
+            ifs.read(reinterpret_cast<char *>(&size_shape), sizeof(size_t));
+            ifs.read(reinterpret_cast<char *>(&size_strides), sizeof(size_t));
+
+            std::istream_iterator<int> in(ifs);
+            std::vector<int> values;
+
+            std::copy_n(in, size_shape + size_strides, std::back_insert_iterator(values));
+
+            shape.reserve(size_shape);
+            std::copy_n(values.begin(), size_shape, shape.begin());
+            strides.reserve(size_strides);
+            std::copy_n(values.begin() + size_shape, size_strides, strides.begin());
         }
 
     private:
