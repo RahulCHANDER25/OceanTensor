@@ -4,7 +4,6 @@
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
-#include <memory>
 #include <stdexcept>
 #include <random>
 #include "InitType.hpp"
@@ -20,6 +19,12 @@ namespace OceanTensor
         {
             if (m_data != nullptr)
                 delete[] m_data;
+        }
+
+        myArray(size_t size, T *data):
+            m_data(data),
+            m_size(size)
+        {
         }
 
         myArray(size_t size, InitType type):
@@ -157,6 +162,14 @@ namespace OceanTensor
                 throw std::runtime_error("Zero division error\n");
             arrOp(*this, [&val] (T &curr) -> void { curr /= val; });
             return *this;
+        }
+
+        T *getRawData() { return m_data; }
+
+        void setRawData(T *data)
+        {
+
+            m_data = data;
         }
 
     private:

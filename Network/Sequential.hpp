@@ -1,6 +1,6 @@
 #pragma once
 
-#include "LinearNetwork.hpp"
+#include "Linear/LinearNetwork.hpp"
 #include "NeuralNetwork.hpp"
 
 #include <initializer_list>
@@ -12,16 +12,21 @@ namespace Network {
     public:
         Sequential() = default;
 
-        Sequential(std::initializer_list<LinearNetwork> linears): m_layers()
+        Sequential(
+            std::initializer_list<LinearNetwork> linears,
+            double ALPHA=0.5
+        ):
+            m_layers(),
+            ALPHA(ALPHA)
         {
             for (auto lin: linears) {
-                m_layers.push_back(lin);
+                m_layers.push_back(std::move(lin));
             }
         }
 
         ~Sequential() = default;
 
-        virtual OceanTensor::myTensor<double, 2> forward(OceanTensor::myTensor<double, 2> &inputs) override
+        virtual Matrix2f forward(Matrix2f &inputs) override
         {
             auto out = inputs;
 
@@ -31,7 +36,7 @@ namespace Network {
             return out;
         }
 
-        virtual void backward(OceanTensor::myTensor<double, 2> &target)
+        virtual void backward(Matrix2f &target)
         {
             auto output = m_layers[m_layers.size() - 1].m_output;
             auto delta = (output - target);
@@ -49,14 +54,11 @@ namespace Network {
 
                 delta *= ((out * (-1)) + 1) * out;
 
-                // Grad for weight
-
-                // std::cout << "For bias => " << delta << curr.m_bias << std::endl;
                 for (int j = 0; j < curr.m_bias.getMetadata().shapeAt(0); j++) {
                     curr.m_gradB({j, 0}) = delta({j, 0});
                 }
                 curr.m_gradW = curr.m_input * delta;
-                curr.m_gradW *= 0.5;
+                curr.m_gradW *= ALPHA;
 
                 delta *= curr.m_weight;
                 delta.transpose();
@@ -77,7 +79,15 @@ namespace Network {
             }
         }
 
+        virtual void save(const std::string &filepath, std::_Ios_Openmode mode=std::ios::trunc) override;
+
+        virtual void load(std::ifstream &ifs) override;
+
+        int in() const { return m_layers.front().in; }
+        int out() const { return m_layers.back().out; }
+
     private:
         std::vector<LinearNetwork> m_layers;
+        const double ALPHA = 0.5;
     };
 }
