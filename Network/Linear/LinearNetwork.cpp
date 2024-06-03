@@ -31,9 +31,7 @@ void Network::LinearNetwork::save(
     ofs.write(reinterpret_cast<char *>(&out), sizeof(int));
     ofs.close();
 
-    std::cout << "SAVE WEIGHT" << std::endl;
     m_weight.save(filepath);
-    std::cout << "SAVE BIAS" << std::endl;
     m_bias.save(filepath);
 }
 
@@ -42,11 +40,7 @@ void Network::LinearNetwork::load(std::ifstream &ifs)
     ifs.read(reinterpret_cast<char *>(&in), sizeof(int));
     ifs.read(reinterpret_cast<char *>(&out), sizeof(int));
 
-    std::cout << "IN AND OUT " << in << " " << out << std::endl;
-    std::cout << "WEIGHTS" << std::endl;
     m_weight.load(ifs);
-    std::cout << "File state => " << ifs.tellg() << std::endl;
-    std::cout << "BIAS" << std::endl;
     m_bias.load(ifs);
     m_act = Act::sigmoid<2>;
 }

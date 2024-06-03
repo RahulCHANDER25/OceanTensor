@@ -267,7 +267,6 @@ namespace OceanTensor {
 
             ifs.read(reinterpret_cast<char *>(&n), sizeof(size_t));
 
-            // std::cout << "SIZE OF DATA => " << n << std::endl;
             T *newData = new T[n];
 
             ifs.read(reinterpret_cast<char *>(newData), sizeof(T) * n);
@@ -285,26 +284,17 @@ namespace OceanTensor {
             ifs.read(reinterpret_cast<char *>(&size_shape), sizeof(size_t));
             ifs.read(reinterpret_cast<char *>(&size_strides), sizeof(size_t));
 
-            std::cout << size_shape << " " << size_strides << std::endl;
             std::istream_iterator<int> in(ifs);
             std::vector<int> values;
 
             std::copy_n(in, size_shape + size_strides, std::back_insert_iterator(values));
 
-            // std::cout << "VALUES" << std::endl;
-            // for (auto &val: values)
-                // std::cout << val << std::endl;
             shape.reserve(size_shape);
             std::copy_n(values.begin(), size_shape, std::back_inserter(shape));
-            std::cout << "SHAPES size => " << shape.size() << std::endl;
-            for (auto &val: shape)
-                std::cout << val << std::endl;
+
             strides.reserve(size_strides);
             std::copy(values.begin() + size_shape, values.end(), std::back_inserter(strides));
-            std::cout << "STRIDES size => " << strides.size() << std::endl;
-            for (auto &val: strides)
-                std::cout << val << std::endl;
-            std::cout << "Position at Weights => " << ifs.tellg() << std::endl;
+
             ifs.read(reinterpret_cast<char *>(&c), sizeof(char));
         }
 
