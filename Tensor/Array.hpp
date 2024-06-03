@@ -28,7 +28,7 @@ namespace OceanTensor
         }
 
         myArray(size_t size, InitType type):
-            m_data(),
+            m_data(nullptr),
             m_size(size)
         {
             m_data = new T[m_size];
@@ -50,7 +50,7 @@ namespace OceanTensor
 
 
         myArray(const myArray<T> &oth):
-            m_data(),
+            m_data(nullptr),
             m_size(oth.m_size)
         {
 
@@ -59,13 +59,13 @@ namespace OceanTensor
         }
 
         myArray(myArray<T> &&oth) noexcept :
-            m_data(),
+            m_data(nullptr),
             m_size(oth.m_size)
         {
 
             m_data = new T[oth.m_size];
             memcpy(m_data, oth.m_data, oth.m_size * sizeof(T));
-            delete oth.m_data;
+            delete[] oth.m_data;
             oth.m_size = 0;
             oth.m_data = nullptr;
         }
@@ -73,7 +73,7 @@ namespace OceanTensor
         myArray<T> &operator=(const myArray<T> &oth)
         {
             if (m_data != nullptr)
-                delete m_data;
+                delete[] m_data;
             m_data = new T[oth.m_size];
             m_size = oth.size();
             memcpy(m_data, oth.m_data, oth.m_size * sizeof(T));
@@ -83,7 +83,7 @@ namespace OceanTensor
         myArray<T> &operator=(myArray<T> &&oth)
         {
             if (m_data != nullptr)
-                delete m_data;
+                delete[] m_data;
             m_size = oth.size();
             m_data = new T[oth.m_size];
             memcpy(m_data, oth.m_data, oth.m_size * sizeof(T));

@@ -10,7 +10,6 @@ namespace Act {
         bool derivative=false
     )
     {
-
         OceanTensor::myTensor<double, DIM> outTensor(tensor);
 
         for (size_t i = 0; i < outTensor.size(); i++) {
