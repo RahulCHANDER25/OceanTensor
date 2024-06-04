@@ -257,7 +257,6 @@ namespace OceanTensor {
 
             std::copy(shape.begin(), shape.end(), out);
             std::copy(strides.begin(), strides.end(), out);
-            std::cout << ofs.tellp() << std::endl;
         }
 
         void load(std::ifstream &ifs)

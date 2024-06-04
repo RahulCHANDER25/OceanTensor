@@ -14,10 +14,10 @@ Matrix2f Network::LinearNetwork::forward(Matrix2f &inputs)
     auto Wshapes = m_weight.getMetadata().shape();
     m_input = inputs.replicate({Wshapes[0], Wshapes[1]});
 
-    auto z = m_weight.matMul(inputs) + m_bias;
-    m_output = (m_act(z, false));
+    m_output = m_weight.matMul(inputs) + m_bias;
+    auto a = (m_act(m_output, false));
 
-    return m_output;
+    return a;
 }
 
 void Network::LinearNetwork::save(

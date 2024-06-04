@@ -24,4 +24,23 @@ namespace Loss {
         }
         return newTensor;
     }
+
+    template <int DIM>
+    OceanTensor::myTensor<double, DIM> meanSquaredLoss(
+        OceanTensor::myTensor<double, DIM> &pred,
+        OceanTensor::myTensor<double, DIM> &y,
+        bool derivative=false
+    )
+    {
+        OceanTensor::myTensor<double, DIM> newTensor(pred);
+        auto &meta_pred = newTensor.getMetadata();
+        auto &meta_y = y.getMetadata();
+
+        if (!meta_pred.isEqual(meta_y.shape()))
+            throw std::runtime_error("Shape not equal.");
+        for (size_t i = 0; i < newTensor.size(); i++) {
+            newTensor[i] = std::pow(y[i] - newTensor[i], 2);
+        }
+        return newTensor / newTensor.size();
+    }
 }
