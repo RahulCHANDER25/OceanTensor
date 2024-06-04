@@ -45,7 +45,7 @@ namespace Network {
 
         virtual Matrix2f forward(Matrix2f &inputs) override;
 
-        void backward(Matrix2f &) // Normalement c ok mais recheck
+        void backward(Matrix2f &)
         {
             this->m_weight -= this->m_gradW;
             this->m_bias -= this->m_gradB;
@@ -64,12 +64,10 @@ namespace Network {
         Matrix2f m_gradB;
         Matrix2f m_gradW;
 
-        // All of that type are temporary I have to change them !
         Matrix2f m_input;
         Matrix2f m_output;
         std::function<Matrix2f(const Matrix2f &, bool)> m_act;
         int in;
         int out;
-    private:
     };
 }

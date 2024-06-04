@@ -38,7 +38,10 @@ namespace Network {
 
         virtual void backward(Matrix2f &target)
         {
-            auto output = m_layers[m_layers.size() - 1].m_output;
+            size_t idx_last = m_layers.size() - 1;
+            auto &last = m_layers[idx_last];
+            auto output = last.m_act(last.m_output, false);
+
             auto delta = (output - target);
 
             auto size = m_layers.size() - 1;
@@ -50,9 +53,10 @@ namespace Network {
                 if (i == size) { // First time we need to put it in correct shape.
                     delta = delta.replicate({shape[1], shape[0]}).transposed();
                 }
-                auto out = curr.m_output.replicate({shape[1], shape[0]}).transposed();
+                auto out = curr.m_act(curr.m_output, true);
+                out = out.replicate({shape[1], shape[0]}).transposed();
 
-                delta *= ((out * (-1)) + 1) * out;
+                delta *= out;
 
                 for (int j = 0; j < curr.m_bias.getMetadata().shapeAt(0); j++) {
                     curr.m_gradB({j, 0}) = delta({j, 0});
