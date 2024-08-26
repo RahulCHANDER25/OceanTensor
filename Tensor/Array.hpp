@@ -3,7 +3,6 @@
 #include <cstddef>
 #include <cstdlib>
 #include <ctime>
-#include <iostream>
 #include <stdexcept>
 #include <random>
 #include "InitType.hpp"
@@ -11,23 +10,23 @@
 namespace OceanTensor
 {
     template <typename T>
-    class myArray {
+    class Array {
     public:
-        myArray(): m_data(nullptr), m_size(0) {}
+        Array(): m_data(nullptr), m_size(0) {}
 
-        ~myArray()
+        ~Array()
         {
             if (m_data != nullptr)
                 delete[] m_data;
         }
 
-        myArray(size_t size, T *data):
+        Array(size_t size, T *data):
             m_data(data),
             m_size(size)
         {
         }
 
-        myArray(size_t size, InitType type):
+        Array(size_t size, InitType type):
             m_data(nullptr),
             m_size(size)
         {
@@ -49,7 +48,7 @@ namespace OceanTensor
         }
 
 
-        myArray(const myArray<T> &oth):
+        Array(const Array<T> &oth):
             m_data(nullptr),
             m_size(oth.m_size)
         {
@@ -58,7 +57,7 @@ namespace OceanTensor
             memcpy(m_data, oth.m_data, oth.m_size * sizeof(T));
         }
 
-        myArray(myArray<T> &&oth) noexcept :
+        Array(Array<T> &&oth) noexcept :
             m_data(nullptr),
             m_size(oth.m_size)
         {
@@ -70,7 +69,7 @@ namespace OceanTensor
             oth.m_data = nullptr;
         }
 
-        myArray<T> &operator=(const myArray<T> &oth)
+        Array<T> &operator=(const Array<T> &oth)
         {
             if (m_data != nullptr)
                 delete[] m_data;
@@ -80,7 +79,7 @@ namespace OceanTensor
             return *this;
         }
 
-        myArray<T> &operator=(myArray<T> &&oth)
+        Array<T> &operator=(Array<T> &&oth)
         {
             if (m_data != nullptr)
                 delete[] m_data;
@@ -110,30 +109,30 @@ namespace OceanTensor
             return m_data[idx];
         }
 
-        myArray<T> operator*(T val) const
+        Array<T> operator*(T val) const
         {
-            myArray<T> newArr(*this);
+            Array<T> newArr(*this);
 
             arrOp(newArr, [&val] (T &curr) -> void { curr *= val; });
             return newArr;
         }
-        myArray<T> operator+(T val) const
+        Array<T> operator+(T val) const
         {
-            myArray<T> newArr(*this);
+            Array<T> newArr(*this);
 
             arrOp(newArr, [&val] (T &curr) -> void { curr += val; });
             return newArr;
         }
-        myArray<T> operator-(T val) const
+        Array<T> operator-(T val) const
         {
-            myArray<T> newArr(*this);
+            Array<T> newArr(*this);
 
             arrOp(newArr, [&val] (T &curr) -> void { curr -= val; });
             return newArr;
         }
-        myArray<T> operator/(T val) const
+        Array<T> operator/(T val) const
         {
-            myArray<T> newArr(*this);
+            Array<T> newArr(*this);
 
             if (val == 0)
                 throw std::runtime_error("Zero division error\n");
@@ -141,22 +140,22 @@ namespace OceanTensor
             return newArr;
         }
 
-        myArray<T> &operator*=(T val)
+        Array<T> &operator*=(T val)
         {
             arrOp(*this, [&val] (T &curr) -> void { curr *= val; });
             return *this;
         }
-        myArray<T> &operator+=(T val)
+        Array<T> &operator+=(T val)
         {
             arrOp(*this, [&val] (T &curr) -> void { curr += val; });
             return *this;
         }
-        myArray<T> &operator-=(T val)
+        Array<T> &operator-=(T val)
         {
             arrOp(*this, [&val] (T &curr) -> void { curr -= val; });
             return *this;
         }
-        myArray<T> &operator/=(T val)
+        Array<T> &operator/=(T val)
         {
             if (val == 0)
                 throw std::runtime_error("Zero division error\n");
@@ -197,7 +196,7 @@ namespace OceanTensor
         }
 
         template <typename F>
-        void arrOp(myArray<T> &arr, F func) const
+        void arrOp(Array<T> &arr, F func) const
         {
             for (size_t i = 0; i < arr.m_size; i++) {
                 func(arr[i]);

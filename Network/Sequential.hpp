@@ -2,6 +2,7 @@
 
 #include "Linear/LinearNetwork.hpp"
 #include "NeuralNetwork.hpp"
+#include "OceanTensor.hpp"
 
 #include <initializer_list>
 #include <vector>
@@ -78,9 +79,7 @@ namespace Network {
                     }
                 }
             }
-            for (auto &layer: m_layers) {
-                layer.backward(target);
-            }
+            applyGrad(target);
         }
 
         virtual void save(const std::string &filepath, std::_Ios_Openmode mode=std::ios::trunc) override;
@@ -91,6 +90,13 @@ namespace Network {
         int out() const { return m_layers.back().out; }
 
     private:
+        void applyGrad(Matrix2f &target)
+        {
+            for (auto &layer: m_layers) {
+                layer.backward(target);
+            }
+        }
+
         std::vector<LinearNetwork> m_layers;
         const double ALPHA = 0.5;
     };

@@ -71,17 +71,9 @@ void testing_lin_load()
     std::cout << l.m_bias << std::endl;
 }
 
-// ---> Tester sur un linear le bias !
-// ++ Fonction d'activation
-// ++ Fonction D'Erreur
-// Améliorer l'interface d'utilisation
-// +++
-
 int main()
 {
-    // test_Sequential();
-    predict_training(1000, "");
-    // testing_load("Rahul.txt");
-    // testing_lin_load();
+    // predict_training(100, "Rahul.txt");
+    testing_load("Rahul.txt");
     return 0;
 }

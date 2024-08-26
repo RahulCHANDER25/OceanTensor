@@ -73,7 +73,7 @@ void dot_test()
     std::cout << vect1 << std::endl;
 
     std::cout << "-- RIGHT --" << std::endl;
-    vect2.dump_arr();
+    vect2.dump_arr(std::cout);
 
     std::cout << "-- Dot --" << std::endl;
     std::cout << res << std::endl;
@@ -87,13 +87,13 @@ void matrix_test()
     auto mat3 = mat1.matMul(mat2);
 
     std::cout << "-- LEFT --" << std::endl;
-    mat1.dump_arr();
+    mat1.dump_arr(std::cout);
 
     std::cout << "-- RIGHT --" << std::endl;
-    mat2.dump_arr();
+    mat2.dump_arr(std::cout);
 
     std::cout << "-- MATMUL --" << std::endl;
-    mat3.dump_arr();
+    mat3.dump_arr(std::cout);
 }
 
 void tensor_test()
@@ -108,16 +108,16 @@ void tensor_test()
     OceanTensor::myTensor<int, 3> res3 = tensor * 32;
 
     std::cout << "-- LEFT --" << std::endl;
-    tensor.dump_arr();
+    tensor.dump_arr(std::cout);
     std::cout << "-- RIGHT --" << std::endl;
-    tensor2.dump_arr();
+    tensor2.dump_arr(std::cout);
 
     std::cout << "---- ADD ----" << std::endl;
-    res1.dump_arr();
+    res1.dump_arr(std::cout);
     std::cout << "---- MINUS ----" << std::endl;
-    res2.dump_arr();
+    res2.dump_arr(std::cout);
     std::cout << "---- MULTIPLY ----" << std::endl;
-    res3.dump_arr();
+    res3.dump_arr(std::cout);
     std::cout << "--------------------------------" << std::endl;
 }
 

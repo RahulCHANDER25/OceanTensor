@@ -5,7 +5,6 @@
 #include <cstring>
 #include <algorithm>
 #include <iterator>
-#include <memory>
 #include <stdexcept>
 
 #include "MetaData.hpp"
@@ -14,12 +13,13 @@
 
 #include "Array.hpp"
 #include <fstream>
-
-// Add N Row with argument copy line=-1
-// Add N Col with argument copy line=-1
+#include <type_traits>
 
 namespace OceanTensor {
-    template <typename T, int DIM>
+    template <typename T>
+    concept Number = std::is_arithmetic_v<T>;
+
+    template <Number T, int DIM>
     class myTensor {
     public:
 
@@ -27,16 +27,16 @@ namespace OceanTensor {
 
         myTensor(std::initializer_list<int> shape, enum InitType type=RANDOM): m_arr(), m_data(shape)
         {
-            this->m_arr = myArray<T>(m_data.size(), type);
+            this->m_arr = Array<T>(m_data.size(), type);
         }
 
         myTensor(const myTensor<T, DIM> &tensor):
-            m_arr(myArray<T>(tensor.m_arr)),
+            m_arr(Array<T>(tensor.m_arr)),
             m_data(tensor.m_data)
         {
         }
 
-        myTensor(const myArray<T> &array, const Metadata &data):
+        myTensor(const Array<T> &array, const Metadata &data):
             m_arr(std::move(array)),
             m_data(data)
         {
@@ -54,14 +54,14 @@ namespace OceanTensor {
         size_t size() const { return m_data.size(); }
         Metadata &getMetadata() { return m_data; }
 
-        void dump_arr() const
+        void dump_arr(std::ostream &os) const
         {
             if (DIM != 1) {
-                format_dump(0, 0);
+                format_dump(0, 0, os);
             } else {
-                std::cout << "[ ";
-                for (int i = 0; i < m_arr.size(); i++) std::cout << m_arr[i] << " ";
-                std::cout << "]" << std::endl;
+                os << "[ ";
+                for (int i = 0; i < m_arr.size(); i++) os << m_arr[i] << " ";
+                os << "]" << std::endl;
             }
         }
 
@@ -269,7 +269,7 @@ namespace OceanTensor {
             T *newData = new T[n];
 
             ifs.read(reinterpret_cast<char *>(newData), sizeof(T) * n);
-            m_arr = myArray<T>(n, newData);
+            m_arr = Array<T>(n, newData);
 
             auto &shape = m_data.shape();
             auto &strides = m_data.strides();
@@ -299,28 +299,29 @@ namespace OceanTensor {
 
     private:
         // This function is used for formatting dump of tensors. (Used only by dump_arr).
-        void format_dump(int track_dim, int idx_start) const
+        void format_dump(int track_dim, int idx_start, std::ostream &os) const
         {
             if (track_dim == (DIM - 1)) {
                 for (int k = 0; k < track_dim; k++) std::cout << "\t";
-                std::cout << "[ ";
+                os << "[ ";
                 for (int k = 0; k < m_data.shapeAt(track_dim); k++) {
-                    std::cout << this->at(idx_start + k * m_data.strideAt(track_dim)) << " ";
+                    os << this->at(idx_start + k * m_data.strideAt(track_dim)) << " ";
                 }
-                std::cout << "] " << std::endl;
+                os << "] " << std::endl;
                 return;
             }
-            for (int k = 0; k < track_dim; k++) std::cout << "\t";
-            std::cout << "[" << std::endl;
+            for (int k = 0; k < track_dim; k++) os << "\t";
+            os << "[" << std::endl;
 
             for (int i = 0; i < m_data.shapeAt(track_dim); i++) {
                 format_dump(
                     track_dim + 1,
-                    idx_start + i * m_data.strideAt(track_dim)
+                    idx_start + i * m_data.strideAt(track_dim),
+                    os
                 );
             }
-            for (int k = 0; k < track_dim; k++) std::cout << "\t";
-            std::cout << "]" << std::endl;
+            for (int k = 0; k < track_dim; k++) os << "\t";
+            os << "]" << std::endl;
         }
 
         template <typename F>
@@ -350,16 +351,18 @@ namespace OceanTensor {
             return tensor;
         }
 
-        myArray<T> m_arr;
+        Array<T> m_arr;
         Metadata m_data;
     };
 }
 
 typedef OceanTensor::myTensor<double, 2> Matrix2f;
+typedef OceanTensor::myTensor<int, 2> Matrix2i;
+typedef OceanTensor::myTensor<size_t, 2> Matrix2u;
 
 template <typename T, int DIM>
 std::ostream &operator<<(std::ostream &os, const OceanTensor::myTensor<T, DIM> &t)
 {
-    t.dump_arr();
+    t.dump_arr(os);
     return os;
 }
