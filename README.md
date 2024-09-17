@@ -1,6 +1,6 @@
 # OceanTensor
 
-Tensor Library in CPP
+Tensor Library in C++
 
 
 
